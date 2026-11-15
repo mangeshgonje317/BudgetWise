@@ -1,0 +1,6 @@
+{
+  "name": "BudgetWise",
+  "description": "Personal finance tracker with monthly budgets, interactive analytics, CSV/JSON import-export, and AI-powered receipt & bank statement scanning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetWise — Transaction Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">₿</div>
+                <span class="logo-text">BudgetWise</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-view="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-view="transactions">
+                <span class="nav-icon">📋</span>
+                <span>Transactions</span>
+            </button>
+            <button class="nav-item" data-view="budgets">
+                <span class="nav-icon">🎯</span>
+                <span>Budgets</span>
+            </button>
+            <button class="nav-item" data-view="reports">
+                <span class="nav-icon">📈</span>
+                <span>Reports</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-export" id="exportBtn" title="Export CSV">
+                <span>📥</span> Export Data
+            </button>
+            <button class="btn-import" id="importBtn" title="Import CSV">
+                <span>📤</span> Import Data
+            </button>
+            <input type="file" id="importFile" accept=".csv,.json" hidden>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <div class="top-bar-left">
+                <h1 id="viewTitle">Dashboard</h1>
+                <span class="current-date" id="currentDate"></span>
+            </div>
+            <div class="top-bar-right">
+                <div class="month-selector">
+                    <button class="btn-icon" id="prevMonth">‹</button>
+                    <span id="currentMonth"></span>
+                    <button class="btn-icon" id="nextMonth">›</button>
+                </div>
+                <button class="btn-scan" id="scanBtn" title="Scan screenshot or PDF">
+                    <span>📷</span> Scan
+                </button>
+                <button class="btn-primary" id="addTransactionBtn">
+                    <span>+</span> Add Transaction
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard View -->
+        <section class="view active" id="dashboardView">
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="card summary-card income-card">
+                    <div class="card-icon">💰</div>
+                    <div class="card-info">
+                        <span class="card-label">Total Income</span>
+                        <span class="card-value" id="totalIncome">₹0.00</span>
+                    </div>
+                    <div class="card-trend up" id="incomeTrend">+0%</div>
+                </div>
+                <div class="card summary-card expense-card">
+                    <div class="card-icon">💸</div>
+                    <div class="card-info">
+                        <span class="card-label">Total Expenses</span>
+                        <span class="card-value" id="totalExpenses">₹0.00</span>
+                    </div>
+                    <div class="card-trend down" id="expenseTrend">-0%</div>
+                </div>
+                <div class="card summary-card balance-card">
+                    <div class="card-icon">🏦</div>
+                    <div class="card-info">
+                        <span class="card-label">Balance</span>
+                        <span class="card-value" id="totalBalance">₹0.00</span>
+                    </div>
+                    <div class="card-trend" id="balanceTrend">0%</div>
+                </div>
+                <div class="card summary-card savings-card">
+                    <div class="card-icon">📊</div>
+                    <div class="card-info">
+                        <span class="card-label">Savings Rate</span>
+                        <span class="card-value" id="savingsRate">0%</span>
+                    </div>
+                    <div class="card-sub" id="savingsSub">of income saved</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="card chart-card">
+                    <h3>Income vs Expenses</h3>
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+                <div class="card chart-card">
+                    <h3>Expenses by Category</h3>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card recent-transactions">
+                <div class="card-header">
+                    <h3>Recent Transactions</h3>
+                    <button class="btn-link" data-view="transactions">View All →</button>
+                </div>
+                <div class="transaction-list" id="recentTransactions">
+                    <div class="empty-state">
+                        <span class="empty-icon">📝</span>
+                        <p>No transactions yet. Click "Add Transaction" to get started!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transactions View -->
+        <section class="view" id="transactionsView">
+            <div class="filters-bar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search transactions...">
+                </div>
+                <div class="filter-group">
+                    <select id="filterType">
+                        <option value="all">All Types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                    <select id="filterCategory">
+                        <option value="all">All Categories</option>
+                    </select>
+                    <select id="sortBy">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="amount-desc">Highest Amount</option>
+                        <option value="amount-asc">Lowest Amount</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card">
+                <div class="transaction-table-wrapper">
+                    <table class="transaction-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th class="text-right">Amount</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <span id="transactionCount">0 transactions</span>
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Budgets View -->
+        <section class="view" id="budgetsView">
+            <div class="budget-header">
+                <p class="budget-subtitle">Set monthly spending limits per category</p>
+                <button class="btn-primary" id="addBudgetBtn">
+                    <span>+</span> Set Budget
+                </button>
+            </div>
+            <div class="budget-grid" id="budgetGrid">
+                <div class="empty-state">
+                    <span class="empty-icon">🎯</span>
+                    <p>No budgets set yet. Click "Set Budget" to create spending limits!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports View -->
+        <section class="view" id="reportsView">
+            <div class="reports-grid">
+                <div class="card chart-card full-width">
+                    <h3>Monthly Trend (Last 6 Months)</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="card chart-card">
+                    <h3>Income Sources</h3>
+                    <canvas id="incomeSourceChart"></canvas>
+                </div>
+                <div class="card chart-card">
+                    <h3>Top Expense Categories</h3>
+                    <canvas id="topExpenseChart"></canvas>
+                </div>
+                <div class="card stats-card">
+                    <h3>Monthly Statistics</h3>
+                    <div class="stats-list" id="statsList">
+                    </div>
+                </div>
+                <div class="card chart-card">
+                    <h3>Daily Spending Pattern</h3>
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add/Edit Transaction Modal -->
+    <div class="modal-overlay" id="transactionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Transaction</h2>
+                <button class="btn-close" id="closeModal">✕</button>
+            </div>
+            <form id="transactionForm">
+                <input type="hidden" id="transactionId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="txType">Type</label>
+                        <div class="type-toggle">
+                            <button type="button" class="type-btn active" data-type="expense">💸 Expense</button>
+                            <button type="button" class="type-btn" data-type="income">💰 Income</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="txAmount">Amount (₹)</label>
+                        <input type="number" id="txAmount" step="0.01" min="0.01" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="txDate">Date</label>
+                        <input type="date" id="txDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="txDescription">Description</label>
+                    <input type="text" id="txDescription" required placeholder="e.g., Grocery shopping" maxlength="100">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="txCategory">Category</label>
+                        <select id="txCategory" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="txPayment">Payment Method</label>
+                        <select id="txPayment">
+                            <option value="cash">💵 Cash</option>
+                            <option value="card">💳 Card</option>
+                            <option value="upi">📱 UPI</option>
+                            <option value="bank">🏦 Bank Transfer</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="txNotes">Notes (optional)</label>
+                    <textarea id="txNotes" rows="2" placeholder="Add any additional notes..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelModal">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Budget Modal -->
+    <div class="modal-overlay" id="budgetModal">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2>Set Budget</h2>
+                <button class="btn-close" id="closeBudgetModal">✕</button>
+            </div>
+            <form id="budgetForm">
+                <div class="form-group">
+                    <label for="budgetCategory">Category</label>
+                    <select id="budgetCategory" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="budgetAmount">Monthly Limit (₹)</label>
+                    <input type="number" id="budgetAmount" step="1" min="1" required placeholder="e.g., 5000">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelBudgetModal">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Budget</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal modal-xs">
+            <div class="modal-header">
+                <h2>Confirm Delete</h2>
+                <button class="btn-close" id="closeConfirmModal">✕</button>
+            </div>
+            <p class="confirm-text">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+            <div class="form-actions">
+                <button class="btn-secondary" id="cancelDelete">Cancel</button>
+                <button class="btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan / AI Import Modal -->
+    <div class="modal-overlay" id="scanModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2>📷 Scan Transactions</h2>
+                <button class="btn-close" id="closeScanModal">✕</button>
+            </div>
+            <div class="scan-body">
+                <!-- Step 1: Upload -->
+                <div class="scan-step" id="scanStep1">
+                    <div class="scan-api-bar">
+                        <span class="api-status" id="apiStatus">
+                            <span class="status-dot offline"></span> API Key not set
+                        </span>
+                        <button class="btn-link" id="setApiKeyBtn">⚙️ Set Gemini API Key</button>
+                    </div>
+                    <div class="scan-dropzone" id="scanDropzone">
+                        <div class="dropzone-content">
+                            <span class="dropzone-icon">📄</span>
+                            <h3>Drop files here or click to upload</h3>
+                            <p>Supports UPI screenshots (PNG, JPG) and Bank Statement PDFs</p>
+                            <div class="dropzone-formats">
+                                <span class="format-tag">📱 UPI Screenshots</span>
+                                <span class="format-tag">🏦 Bank PDFs</span>
+                                <span class="format-tag">📸 Receipt Photos</span>
+                            </div>
+                        </div>
+                        <input type="file" id="scanFileInput" accept="image/*,.pdf" multiple hidden>
+                    </div>
+                    <div class="scan-file-list" id="scanFileList"></div>
+                    <div class="scan-actions" id="scanActions" style="display:none">
+                        <button class="btn-secondary" id="clearScanFiles">Clear All</button>
+                        <button class="btn-primary" id="startScanBtn">
+                            <span>🔍</span> Extract Transactions
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Processing -->
+                <div class="scan-step" id="scanStep2" style="display:none">
+                    <div class="scan-processing">
+                        <div class="scanner-animation">
+                            <div class="scanner-ring"></div>
+                            <span class="scanner-icon">🤖</span>
+                        </div>
+                        <h3>Analyzing with Gemini AI...</h3>
+                        <p id="scanProgress">Processing file 1 of 1</p>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="scanProgressBar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review Results -->
+                <div class="scan-step" id="scanStep3" style="display:none">
+                    <div class="scan-results-header">
+                        <h3>📋 Extracted Transactions</h3>
+                        <p id="scanResultCount">0 transactions found</p>
+                    </div>
+                    <div class="scan-results-list" id="scanResultsList"></div>
+                    <div class="scan-actions">
+                        <button class="btn-secondary" id="scanBackBtn">← Scan More</button>
+                        <div class="scan-actions-right">
+                            <button class="btn-secondary" id="selectAllScan">Select All</button>
+                            <button class="btn-primary" id="addScannedBtn">
+                                <span>✅</span> Add Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Modal -->
+    <div class="modal-overlay" id="apiKeyModal">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2>🔑 Gemini API Key</h2>
+                <button class="btn-close" id="closeApiKeyModal">✕</button>
+            </div>
+            <div style="padding:24px">
+                <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5">
+                    Enter your Google Gemini API key to enable AI-powered transaction extraction from screenshots and PDFs.
+                    Your key is stored locally and never leaves your browser.
+                </p>
+                <div class="form-group">
+                    <label for="apiKeyInput">API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="AIza...">
+                </div>
+                <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px">
+                    Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary)">aistudio.google.com/apikey</a>
+                </p>
+                <div class="form-actions" style="padding:0">
+                    <button class="btn-secondary" id="cancelApiKey">Cancel</button>
+                    <button class="btn-primary" id="saveApiKey">Save Key</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+    <script src="scanner.js"></script>
+</body>
+</html>
