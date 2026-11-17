@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <rect width="900" height="1200" fill="#ffffff"/>
+  <text x="60" y="80" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#111827">PAYMENT RECEIPT</text>
+  <line x1="60" y1="110" x2="840" y2="110" stroke="#d1d5db" stroke-width="2"/>
+  <text x="60" y="180" font-family="Arial, sans-serif" font-size="28" fill="#374151">Date: 15/11/2026</text>
+  <text x="60" y="245" font-family="Arial, sans-serif" font-size="26" fill="#374151">UPI ID: paytm@upi</text>
+  <text x="60" y="330" font-family="Arial, sans-serif" font-size="24" fill="#374151">Paid to</text>
+  <text x="60" y="380" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#111827">Zomato</text>
+  <text x="60" y="430" font-family="Arial, sans-serif" font-size="22" fill="#6b7280">Reference: UTR123456789</text>
+  <text x="60" y="520" font-family="Arial, sans-serif" font-size="28" fill="#374151">Amount</text>
+  <text x="650" y="520" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#b91c1c">₹ 499.00</text>
+  <line x1="60" y1="560" x2="840" y2="560" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="60" y="640" font-family="Arial, sans-serif" font-size="28" fill="#374151">Received from</text>
+  <text x="60" y="690" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#111827">Salary Credit</text>
+  <text x="60" y="740" font-family="Arial, sans-serif" font-size="22" fill="#6b7280">Ref: CRD9283746</text>
+  <text x="60" y="830" font-family="Arial, sans-serif" font-size="28" fill="#374151">Amount</text>
+  <text x="650" y="830" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#15803d">₹ 32000.00</text>
+  <rect x="60" y="920" width="780" height="140" rx="12" fill="#f3f4f6"/>
+  <text x="90" y="975" font-family="Arial, sans-serif" font-size="24" fill="#374151">Net balance: ₹ 31,501.00</text>
+  <text x="90" y="1025" font-family="Arial, sans-serif" font-size="22" fill="#6b7280">Payment method: UPI</text>
+</svg>
